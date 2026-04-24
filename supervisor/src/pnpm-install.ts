@@ -1,5 +1,6 @@
 import { execa, type ExecaError } from "execa";
 import { access } from "node:fs/promises";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { constants as FS } from "node:fs";
 import type { Logger } from "pino";
@@ -13,11 +14,40 @@ export type InstallResult = {
 
 export type InstallOptions = {
   repoDir: string;
+  /** Fallback, wenn sich das Repo nicht eindeutig per Lockfile/Workspaces erkennen lässt. */
   packageManager: "pnpm" | "npm" | "yarn";
   logger: Logger;
   /** Cached lockfile hash from previous install. Pass null to force install. */
   lastLockfileHash: string | null;
 };
+
+/**
+ * npm-workspaces-Monorepos ohne pnpm-workspace.yaml: mit pnpm installieren liefert oft leere/kaputte node_modules.
+ * Dann npm anhand package-lock nutzen.
+ */
+export function effectiveInstallPackageManager(
+  repoDir: string,
+  fallback: "pnpm" | "npm" | "yarn",
+): "pnpm" | "npm" | "yarn" {
+  const has = (f: string) => existsSync(join(repoDir, f));
+  if (has("yarn.lock")) return "yarn";
+  if (has("package-lock.json") && has("package.json")) {
+    try {
+      const raw = readFileSync(join(repoDir, "package.json"), "utf8");
+      const pj = JSON.parse(raw) as { workspaces?: unknown };
+      const ws = pj.workspaces;
+      const hasWs = Array.isArray(ws) || (ws != null && typeof ws === "object");
+      if (hasWs && !has("pnpm-workspace.yaml")) {
+        return "npm";
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+  if (has("pnpm-lock.yaml")) return "pnpm";
+  if (has("package-lock.json")) return "npm";
+  return fallback;
+}
 
 async function nodeModulesPresent(repoDir: string): Promise<boolean> {
   try {
@@ -49,17 +79,21 @@ export async function installIfNeeded(opts: InstallOptions): Promise<{
     };
   }
 
-  const args = installArgs(opts.packageManager);
-  opts.logger.info({ pm: opts.packageManager, reason, args }, "running install");
+  const pm = effectiveInstallPackageManager(opts.repoDir, opts.packageManager);
+  if (pm !== opts.packageManager) {
+    opts.logger.info({ configured: opts.packageManager, effective: pm }, "package manager from repo layout");
+  }
+  const args = installArgs(pm);
+  opts.logger.info({ pm, reason, args }, "running install");
   try {
-    await runPackageManagerInstall(opts.packageManager, args, opts.repoDir, opts.logger);
+    await runPackageManagerInstall(pm, args, opts.repoDir, opts.logger);
   } catch (err) {
     const e = err as ExecaError;
     opts.logger.error(
       { stderr: e.stderr, stdout: e.stdout, code: e.exitCode },
       "install failed",
     );
-    throw new Error(`${opts.packageManager} install failed: ${e.shortMessage ?? e.message}`);
+    throw new Error(`${pm} install failed: ${e.shortMessage ?? e.message}`);
   }
 
   const durationMs = Date.now() - start;
