@@ -58,7 +58,7 @@ describe("vite integration", () => {
     port = await pickPort();
     state = new StateMachine("OFFLINE");
     vite = new ViteController({
-      repoDir: workDir,
+      viteRoot: workDir,
       host: "127.0.0.1",
       port,
       logger,

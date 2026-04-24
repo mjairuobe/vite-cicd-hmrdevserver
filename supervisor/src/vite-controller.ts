@@ -5,7 +5,8 @@ import { setTimeout as sleep } from "node:timers/promises";
 import { StateMachine, type StateError } from "./state-machine.js";
 
 export type ViteControllerOptions = {
-  repoDir: string;
+  /** Verzeichnis mit index.html + vite.config (kann Unterordner des Git-Repo sein). */
+  viteRoot: string;
   host: string;
   port: number;
   logger: Logger;
@@ -52,7 +53,7 @@ export class ViteController {
 
     try {
       this.server = await createServer({
-        root: this.opts.repoDir,
+        root: this.opts.viteRoot,
         server: {
           host: this.opts.host,
           port: this.opts.port,

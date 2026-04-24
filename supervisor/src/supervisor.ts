@@ -9,6 +9,7 @@ import { registerSync } from "./http/sync.js";
 import { registerStatus } from "./http/status.js";
 import { registerLifecycle } from "./http/lifecycle.js";
 import { isPortInUse, killPortOwner } from "./port-utils.js";
+import { resolveViteProjectRoot } from "./vite-project-root.js";
 
 process.title = "vite-dev-remote-supervisor";
 
@@ -16,11 +17,13 @@ async function main(): Promise<void> {
   const config = loadConfig();
   const { logger, ring } = createLogger(config);
 
+  const viteRoot = resolveViteProjectRoot(config.REPO_DIR);
   logger.info(
     {
       supervisor: `${config.SUPERVISOR_HOST}:${config.SUPERVISOR_PORT}`,
       vite: `${config.VITE_HOST}:${config.VITE_PORT}`,
       repoDir: config.REPO_DIR,
+      viteRoot,
       trackedRef: config.TRACKED_REF,
       pm: config.PACKAGE_MANAGER,
     },
@@ -40,7 +43,7 @@ async function main(): Promise<void> {
 
   const state = new StateMachine("OFFLINE");
   const vite = new ViteController({
-    repoDir: config.REPO_DIR,
+    viteRoot,
     host: config.VITE_HOST,
     port: config.VITE_PORT,
     logger: logger.child({ component: "vite" }),
