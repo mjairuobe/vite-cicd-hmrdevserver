@@ -39,12 +39,12 @@ pipeline {
               returnStdout: true,
               script: """
                 set -e
-                for i in \\$(seq 1 180); do
+                for i in {1..180}; do
                   if curl -fsS -o /dev/null '${SUPERVISOR_URL}/status' 2>/dev/null; then break; fi
                   sleep 1
                 done
                 runId=""
-                for i in \\$(seq 1 120); do
+                for i in {1..120}; do
                   code=\\$(curl -sS -o /tmp/sync.json -w '%{http_code}' -X POST '${SUPERVISOR_URL}/sync' ${authHeader} \\
                     -H 'Content-Type: application/json' \\
                     -d '{\"ref\":\"${ref}\"}' || echo 000)
