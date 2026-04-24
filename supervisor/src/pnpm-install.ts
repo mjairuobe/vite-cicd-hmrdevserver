@@ -118,7 +118,8 @@ function installArgs(pm: "pnpm" | "npm" | "yarn"): string[] {
     case "pnpm":
       return ["install", "--prefer-offline", "--reporter=append-only"];
     case "npm":
-      return ["ci", "--prefer-offline", "--no-audit", "--no-fund"];
+      // NODE_ENV=production (z. B. systemd-Unit) würde sonst devDependencies weglassen — Vite fehlt.
+      return ["ci", "--include=dev", "--prefer-offline", "--no-audit", "--no-fund"];
     case "yarn":
       return ["install", "--frozen-lockfile", "--prefer-offline", "--non-interactive"];
   }
