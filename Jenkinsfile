@@ -11,7 +11,7 @@ pipeline {
   }
 
   environment {
-    SUPERVISOR_URL = "${env.SUPERVISOR_URL ?: 'https://build.dflowp.online:40890'}"
+    SUPERVISOR_URL = "${env.SUPERVISOR_URL ?: 'http://127.0.0.1:40890'}"
   }
 
   stages {
