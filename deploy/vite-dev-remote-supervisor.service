@@ -17,6 +17,8 @@ StandardError=journal
 SyslogIdentifier=vite-dev-remote
 
 # --- configuration (override with `systemctl --user edit`) ---
+# User-local pnpm (not on default PATH for systemd --user)
+Environment=PATH=%h/.local/share/pnpm:/usr/local/bin:/usr/bin
 Environment=NODE_ENV=production
 Environment=LOG_LEVEL=info
 Environment=SUPERVISOR_HOST=127.0.0.1

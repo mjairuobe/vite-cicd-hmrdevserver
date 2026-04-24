@@ -95,6 +95,14 @@ export class StateMachine extends EventEmitter {
     return { ...this.snap };
   }
 
+  /**
+   * Set runId / lastCommit without changing state (e.g. cold boot after git sync while still OFFLINE).
+   */
+  setRunMetadata(opts: { runId?: string | null; lastCommit?: string | null }): void {
+    if (opts.runId !== undefined) this.snap.runId = opts.runId;
+    if (opts.lastCommit !== undefined) this.snap.lastCommit = opts.lastCommit;
+  }
+
   isAllowed(to: State): boolean {
     return TRANSITIONS[this.snap.state].includes(to);
   }

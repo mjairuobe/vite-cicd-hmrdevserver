@@ -60,8 +60,8 @@ export class Orchestrator {
       ref: this.opts.config.TRACKED_REF,
       logger: this.opts.logger.child({ runId }),
     });
-    this.opts.state.forceTransition("OFFLINE", { runId, lastCommit: sync.newHead });
-    // OFFLINE -> STARTING is allowed by force.
+    this.opts.state.setRunMetadata({ runId, lastCommit: sync.newHead });
+    // Still OFFLINE until vite.start() forces OFFLINE -> STARTING.
     const install = await installIfNeeded({
       repoDir: this.opts.config.REPO_DIR,
       packageManager: this.opts.config.PACKAGE_MANAGER,
