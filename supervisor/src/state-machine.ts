@@ -123,6 +123,9 @@ export class StateMachine extends EventEmitter {
    * Still rejects transitions away from OFFLINE that aren't STARTING (sanity).
    */
   forceTransition(to: State, opts: { runId?: string | null; reason?: string; error?: StateError | null; lastCommit?: string | null } = {}): void {
+    if (this.snap.state === to) {
+      return;
+    }
     if (this.snap.state === "OFFLINE" && to !== "STARTING") {
       throw new InvalidTransitionError(this.snap.state, to);
     }

@@ -42,6 +42,16 @@ describe("StateMachine", () => {
     expect(sm.current.error?.msg).toBe("vite died");
   });
 
+  it("forceTransition is a no-op when already in target state", () => {
+    const sm = new StateMachine("OFFLINE");
+    const events: string[] = [];
+    sm.on("transition", (ev) => events.push(`${ev.from}->${ev.to}`));
+    sm.forceTransition("OFFLINE");
+    expect(sm.current.state).toBe("OFFLINE");
+    expect(sm.current.seq).toBe(0);
+    expect(events).toEqual([]);
+  });
+
   it("monotonically increases seq", () => {
     const sm = new StateMachine("OFFLINE");
     sm.forceTransition("STARTING");

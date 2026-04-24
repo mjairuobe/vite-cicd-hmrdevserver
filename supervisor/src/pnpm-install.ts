@@ -52,12 +52,7 @@ export async function installIfNeeded(opts: InstallOptions): Promise<{
   const args = installArgs(opts.packageManager);
   opts.logger.info({ pm: opts.packageManager, reason, args }, "running install");
   try {
-    await execa(opts.packageManager, args, {
-      cwd: opts.repoDir,
-      env: { CI: "1" },
-      stdout: "pipe",
-      stderr: "pipe",
-    });
+    await runPackageManagerInstall(opts.packageManager, args, opts.repoDir, opts.logger);
   } catch (err) {
     const e = err as ExecaError;
     opts.logger.error(
@@ -83,5 +78,42 @@ function installArgs(pm: "pnpm" | "npm" | "yarn"): string[] {
       return ["ci", "--prefer-offline", "--no-audit", "--no-fund"];
     case "yarn":
       return ["install", "--frozen-lockfile", "--prefer-offline", "--non-interactive"];
+  }
+}
+
+function isPnpmNotFound(err: unknown): boolean {
+  const e = err as ExecaError & { code?: string };
+  return e.code === "ENOENT" || (typeof e.shortMessage === "string" && e.shortMessage.includes("ENOENT"));
+}
+
+/**
+ * systemd --user often has no pnpm on PATH; try corepack / npx before failing.
+ */
+async function runPackageManagerInstall(
+  pm: "pnpm" | "npm" | "yarn",
+  args: string[],
+  cwd: string,
+  logger: Logger,
+): Promise<void> {
+  const env = { CI: "1" };
+  const stdio = { stdout: "pipe" as const, stderr: "pipe" as const };
+
+  if (pm !== "pnpm") {
+    await execa(pm, args, { cwd, env, ...stdio });
+    return;
+  }
+
+  try {
+    await execa("pnpm", args, { cwd, env, ...stdio });
+  } catch (err) {
+    if (!isPnpmNotFound(err)) throw err;
+    logger.warn("pnpm binary not found on PATH; trying corepack pnpm");
+    try {
+      await execa("corepack", ["pnpm", ...args], { cwd, env, ...stdio });
+    } catch (err2) {
+      if (!isPnpmNotFound(err2)) throw err2;
+      logger.warn("corepack pnpm unavailable; trying npx pnpm");
+      await execa("npx", ["--yes", "pnpm", ...args], { cwd, env, ...stdio });
+    }
   }
 }

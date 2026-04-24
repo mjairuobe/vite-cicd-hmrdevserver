@@ -15,7 +15,14 @@ rsync -a --delete \
   "$REPO_ROOT/supervisor/" "$INSTALL_DIR/"
 
 echo "==> Building"
-( cd "$INSTALL_DIR" && npm install --omit=dev --prefer-offline && npm install --include=dev --prefer-offline && npx tsc -p tsconfig.json )
+(
+  cd "$INSTALL_DIR"
+  npm install --omit=dev --prefer-offline
+  npm install --include=dev --prefer-offline
+  # pnpm for tracked repos: systemd user units often lack a global pnpm on PATH
+  command -v corepack >/dev/null 2>&1 && corepack enable && corepack prepare pnpm@latest --activate || true
+  npx tsc -p tsconfig.json
+)
 
 echo "==> Installing systemd unit"
 mkdir -p "$USER_UNIT_DIR"
