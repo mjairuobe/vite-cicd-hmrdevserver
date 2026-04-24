@@ -40,21 +40,21 @@ pipeline {
               script: """
                 set -e
                 for i in {1..180}; do
-                  if curl -fsS -o /dev/null '${SUPERVISOR_URL}/status' 2>/dev/null; then break; fi
+                  if curl -fsS -o /dev/null "${SUPERVISOR_URL}/status" 2>/dev/null; then break; fi
                   sleep 1
                 done
                 runId=""
                 for i in {1..120}; do
-                  code=\\$(curl -sS -o /tmp/sync.json -w '%{http_code}' -X POST '${SUPERVISOR_URL}/sync' ${authHeader} \\
+                  code=\$(curl -sS -o /tmp/sync.json -w '%{http_code}' -X POST "${SUPERVISOR_URL}/sync" ${authHeader} \\
                     -H 'Content-Type: application/json' \\
                     -d '{\"ref\":\"${ref}\"}' || echo 000)
-                  if [ "\\$code" = "202" ]; then
-                    runId=\\$(jq -r .runId /tmp/sync.json)
-                    if [ -n "\\$runId" ] && [ "\\$runId" != "null" ]; then echo "\\$runId"; exit 0; fi
+                  if [ "\$code" = "202" ]; then
+                    runId=\$(jq -r .runId /tmp/sync.json)
+                    if [ -n "\$runId" ] && [ "\$runId" != "null" ]; then echo "\$runId"; exit 0; fi
                   fi
                   sleep 2
                 done
-                echo "supervisor /sync: no 202 after retries (last http \\$code)" >&2
+                echo "supervisor /sync: no 202 after retries (last http \$code)" >&2
                 exit 1
               """
             ).trim()
