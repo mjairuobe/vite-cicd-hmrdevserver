@@ -1,0 +1,35 @@
+{
+  "name": "vite-dev-remote-supervisor",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Supervisor daemon for a long-running Vite dev server triggered by Jenkins CI/CD",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "main": "dist/src/supervisor.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "start": "node dist/src/supervisor.js",
+    "dev": "tsx watch src/supervisor.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:integration": "vitest run test/integration"
+  },
+  "dependencies": {
+    "async-mutex": "^0.5.0",
+    "execa": "^9.5.1",
+    "fastify": "^5.1.0",
+    "pino": "^9.5.0",
+    "pino-pretty": "^11.3.0",
+    "vite": "^5.4.11",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

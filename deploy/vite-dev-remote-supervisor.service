@@ -1,0 +1,33 @@
+[Unit]
+Description=Vite Dev Remote Supervisor
+Documentation=https://github.com/your-org/vite-dev-remote
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/vite-dev-remote
+ExecStart=/usr/bin/node /opt/vite-dev-remote/dist/src/supervisor.js
+Restart=always
+RestartSec=2
+KillSignal=SIGTERM
+TimeoutStopSec=15
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=vite-dev-remote
+
+# --- configuration (override with `systemctl --user edit`) ---
+Environment=NODE_ENV=production
+Environment=LOG_LEVEL=info
+Environment=SUPERVISOR_HOST=127.0.0.1
+Environment=SUPERVISOR_PORT=40890
+Environment=VITE_HOST=127.0.0.1
+Environment=VITE_PORT=40889
+Environment=REPO_DIR=%h/vite-dev-remote-repo
+Environment=REPO_URL=git@github.com:org/your-frontend.git
+Environment=TRACKED_REF=main
+Environment=PACKAGE_MANAGER=pnpm
+Environment=KILL_PORT_OWNER_ON_START=true
+
+[Install]
+WantedBy=default.target
