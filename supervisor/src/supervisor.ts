@@ -65,6 +65,8 @@ async function main(): Promise<void> {
     vite,
   });
 
+  let shutdown: (exitCode: number) => Promise<void>;
+
   // Crash detection: if vite-controller exits unexpectedly, mark CRASHED.
   // (The in-process Vite makes this rare; main risk is unhandled exception.)
   process.on("uncaughtException", (err) => {
@@ -81,15 +83,6 @@ async function main(): Promise<void> {
     logger.error({ err: err.message, stack: err.stack }, "unhandledRejection");
   });
 
-  // Cold-boot: clone/pull and start vite.
-  try {
-    await orchestrator.coldBoot();
-  } catch (err) {
-    logger.fatal({ err: (err as Error).message }, "cold boot failed");
-    process.exit(3);
-  }
-
-  // HTTP API
   const app = Fastify({ logger: false, disableRequestLogging: true });
   registerAuth(app, config.AUTH_SECRET);
   registerSync(app, orchestrator);
@@ -101,10 +94,7 @@ async function main(): Promise<void> {
     },
   });
 
-  await app.listen({ host: config.SUPERVISOR_HOST, port: config.SUPERVISOR_PORT });
-  logger.info({ url: `http://${config.SUPERVISOR_HOST}:${config.SUPERVISOR_PORT}` }, "supervisor http listening");
-
-  const shutdown = async (exitCode: number): Promise<void> => {
+  shutdown = async (exitCode: number): Promise<void> => {
     logger.info("shutting down");
     try {
       state.forceTransition("STOPPING");
@@ -124,6 +114,16 @@ async function main(): Promise<void> {
     } catch { /* ignore */ }
     process.exit(exitCode);
   };
+
+  await app.listen({ host: config.SUPERVISOR_HOST, port: config.SUPERVISOR_PORT });
+  logger.info({ url: `http://${config.SUPERVISOR_HOST}:${config.SUPERVISOR_PORT}` }, "supervisor http listening");
+
+  try {
+    await orchestrator.coldBoot();
+  } catch (err) {
+    logger.fatal({ err: (err as Error).message }, "cold boot failed");
+    process.exit(3);
+  }
 
   for (const sig of ["SIGTERM", "SIGINT"] as const) {
     process.on(sig, () => {

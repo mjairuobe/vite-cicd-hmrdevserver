@@ -49,27 +49,29 @@ export class Orchestrator {
 
   /** Cold-boot recovery: ensure repo is in good shape before starting Vite. */
   async coldBoot(): Promise<void> {
-    this.opts.logger.info("cold boot: pulling baseline");
-    const runId = `boot-${randomUUID()}`;
-    this.currentRunId = runId;
-    this.opts.vite.setRunId(runId);
+    await this.mutex.runExclusive(async () => {
+      this.opts.logger.info("cold boot: pulling baseline");
+      const runId = `boot-${randomUUID()}`;
+      this.currentRunId = runId;
+      this.opts.vite.setRunId(runId);
 
-    const sync = await syncRepository({
-      repoDir: this.opts.config.REPO_DIR,
-      repoUrl: this.opts.config.REPO_URL,
-      ref: this.opts.config.TRACKED_REF,
-      logger: this.opts.logger.child({ runId }),
+      const sync = await syncRepository({
+        repoDir: this.opts.config.REPO_DIR,
+        repoUrl: this.opts.config.REPO_URL,
+        ref: this.opts.config.TRACKED_REF,
+        logger: this.opts.logger.child({ runId }),
+      });
+      this.opts.state.setRunMetadata({ runId, lastCommit: sync.newHead });
+      // Still OFFLINE until vite.start() forces OFFLINE -> STARTING.
+      const install = await installIfNeeded({
+        repoDir: this.opts.config.REPO_DIR,
+        packageManager: this.opts.config.PACKAGE_MANAGER,
+        logger: this.opts.logger.child({ runId, phase: "install" }),
+        lastLockfileHash: this.lastLockfileHash,
+      });
+      this.lastLockfileHash = install.newLockfileHash;
+      await this.opts.vite.start();
     });
-    this.opts.state.setRunMetadata({ runId, lastCommit: sync.newHead });
-    // Still OFFLINE until vite.start() forces OFFLINE -> STARTING.
-    const install = await installIfNeeded({
-      repoDir: this.opts.config.REPO_DIR,
-      packageManager: this.opts.config.PACKAGE_MANAGER,
-      logger: this.opts.logger.child({ runId, phase: "install" }),
-      lastLockfileHash: this.lastLockfileHash,
-    });
-    this.lastLockfileHash = install.newLockfileHash;
-    await this.opts.vite.start();
   }
 
   /**

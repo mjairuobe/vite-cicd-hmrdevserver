@@ -34,13 +34,28 @@ pipeline {
             // and bind it to the env block, then it's auto-included in curl calls.
             def authHeader = env.SUPERVISOR_SECRET ? "-H 'X-Shared-Secret: ${env.SUPERVISOR_SECRET}'" : ""
 
+            // Supervisor bindet HTTP jetzt vor coldBoot; bis dahin kann /sync 409 (Mutex) liefern — kurz retry.
             def runId = sh(
               returnStdout: true,
               script: """
-                curl -fsS -X POST ${SUPERVISOR_URL}/sync ${authHeader} \\
-                  -H 'Content-Type: application/json' \\
-                  -d '{"ref":"${ref}"}' \\
-                | jq -r .runId
+                set -e
+                for i in \\$(seq 1 180); do
+                  if curl -fsS -o /dev/null '${SUPERVISOR_URL}/status' 2>/dev/null; then break; fi
+                  sleep 1
+                done
+                runId=""
+                for i in \\$(seq 1 120); do
+                  code=\\$(curl -sS -o /tmp/sync.json -w '%{http_code}' -X POST '${SUPERVISOR_URL}/sync' ${authHeader} \\
+                    -H 'Content-Type: application/json' \\
+                    -d '{\"ref\":\"${ref}\"}' || echo 000)
+                  if [ "\\$code" = "202" ]; then
+                    runId=\\$(jq -r .runId /tmp/sync.json)
+                    if [ -n "\\$runId" ] && [ "\\$runId" != "null" ]; then echo "\\$runId"; exit 0; fi
+                  fi
+                  sleep 2
+                done
+                echo "supervisor /sync: no 202 after retries (last http \\$code)" >&2
+                exit 1
               """
             ).trim()
             echo "Started sync run: ${runId}"
