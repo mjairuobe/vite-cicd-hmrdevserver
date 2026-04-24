@@ -19,8 +19,8 @@ echo "==> Building"
   cd "$INSTALL_DIR"
   npm install --omit=dev --prefer-offline
   npm install --include=dev --prefer-offline
-  # pnpm for tracked repos: systemd user units often lack a global pnpm on PATH
-  command -v corepack >/dev/null 2>&1 && corepack enable && corepack prepare pnpm@latest --activate || true
+  # pnpm for tracked repos (ohne corepack enable — das schreibt nach /usr und bricht oft mit EACCES ab)
+  command -v corepack >/dev/null 2>&1 && corepack prepare pnpm@latest --activate || true
   npx tsc -p tsconfig.json
 )
 
