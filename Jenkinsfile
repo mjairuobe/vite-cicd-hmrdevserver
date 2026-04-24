@@ -7,7 +7,6 @@ pipeline {
     disableConcurrentBuilds()                 // singleton at the job level
     timeout(time: 5, unit: 'MINUTES')         // hard ceiling so a stuck sync never blocks forever
     timestamps()
-    ansiColor('xterm')
   }
 
   environment {
