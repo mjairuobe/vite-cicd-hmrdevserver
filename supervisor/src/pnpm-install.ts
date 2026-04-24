@@ -50,12 +50,21 @@ export function effectiveInstallPackageManager(
 }
 
 async function nodeModulesPresent(repoDir: string): Promise<boolean> {
+  const nm = join(repoDir, "node_modules");
   try {
-    await access(join(repoDir, "node_modules"), FS.F_OK);
-    return true;
+    await access(nm, FS.F_OK);
   } catch {
     return false;
   }
+  // Nur der Ordner reicht nicht: abgebrochene npm ci-Läufe hinterlassen leere/teilweise Trees —
+  // Vite muss aus dem Repo-Root für mermaid-poc/vite.config.ts auflösbar sein.
+  if (
+    existsSync(join(repoDir, "mermaid-poc", "vite.config.ts")) ||
+    existsSync(join(repoDir, "mermaid-poc", "vite.config.mts"))
+  ) {
+    return existsSync(join(repoDir, "node_modules", "vite", "package.json"));
+  }
+  return true;
 }
 
 export async function installIfNeeded(opts: InstallOptions): Promise<{

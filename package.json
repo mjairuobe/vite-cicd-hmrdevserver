@@ -2,6 +2,9 @@
   "name": "vite-cicd-hmrdevserver",
   "private": true,
   "workspaces": ["mermaid-poc"],
+  "devDependencies": {
+    "vite": "^7.0.0"
+  },
   "scripts": {
     "dev": "npm run dev -w mermaid-poc",
     "watch": "npm run watch -w mermaid-poc",
