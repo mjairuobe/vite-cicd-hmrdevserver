@@ -48,7 +48,7 @@ const DIAGRAM = `classDiagram
   %% linkClass: Payment = https://en.wikipedia.org/w/index.php?search=Payment
 
   class User {
-    +String uuidbababb
+    +String uuid
     +String name
     +login()
     +logout()
