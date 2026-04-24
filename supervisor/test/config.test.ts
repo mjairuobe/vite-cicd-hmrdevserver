@@ -3,7 +3,7 @@ import { loadConfig } from "../src/config.js";
 
 const minimal = {
   REPO_DIR: "/tmp/repo",
-  REPO_URL: "git@github.com:org/p.git",
+  REPO_URL: "https://github.com/org/p.git",
 };
 
 describe("config", () => {

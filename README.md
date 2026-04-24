@@ -20,7 +20,7 @@ cd supervisor && npm install && npm run build
 # 2. Configure: see deploy/vite-dev-remote-supervisor.service for env vars,
 #    or set them inline:
 export REPO_DIR=$HOME/work/repo
-export REPO_URL=git@github.com:org/your-frontend.git
+export REPO_URL=https://github.com/org/your-frontend.git
 export TRACKED_REF=main
 
 # 3. Run.
