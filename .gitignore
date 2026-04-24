@@ -1,0 +1,8 @@
+node_modules/
+dist/
+*.log
+.DS_Store
+mermaid-poc/node_modules/
+mermaid-poc/dist/
+supervisor/node_modules/
+old-waterfall-7b5d/

@@ -7,6 +7,8 @@ import { StateMachine, type StateError } from "./state-machine.js";
 export type ViteControllerOptions = {
   /** Verzeichnis mit index.html + vite.config (kann Unterordner des Git-Repo sein). */
   viteRoot: string;
+  /** Vite `base` (öffentlicher URL-Pfad, z. B. /mermaid-poc/). */
+  base: string;
   host: string;
   port: number;
   logger: Logger;
@@ -54,6 +56,7 @@ export class ViteController {
     try {
       this.server = await createServer({
         root: this.opts.viteRoot,
+        base: this.opts.base,
         server: {
           host: this.opts.host,
           port: this.opts.port,
@@ -213,13 +216,20 @@ export class ViteController {
     }
   }
 
+  /** Pfad der SPA-Root (bei base /mermaid-poc/ → /mermaid-poc/). */
+  private healthCheckPath(): string {
+    const b = this.opts.base;
+    if (b === "/") return "/";
+    return b.endsWith("/") ? b : `${b}/`;
+  }
+
   private probe(): Promise<boolean> {
     return new Promise((resolve) => {
       const req = httpRequest(
         {
           host: this.opts.host,
           port: this.opts.port,
-          path: "/",
+          path: this.healthCheckPath(),
           method: "HEAD",
           timeout: this.opts.healthcheckTimeoutMs,
         },

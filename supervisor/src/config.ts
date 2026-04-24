@@ -1,5 +1,13 @@
 import { z } from "zod";
 
+/** Vite public base path (z. B. /mermaid-poc/ wenn die App unter diesem URL-Pfad läuft). */
+export function normalizeViteBasePath(input: string): string {
+  const s = input.trim();
+  if (s === "" || s === "/") return "/";
+  const withLeading = s.startsWith("/") ? s : `/${s}`;
+  return withLeading.endsWith("/") ? withLeading : `${withLeading}/`;
+}
+
 const ConfigSchema = z.object({
   NODE_ENV: z.enum(["development", "production", "test"]).default("production"),
 
@@ -12,6 +20,15 @@ const ConfigSchema = z.object({
   REPO_DIR: z.string().min(1),
   REPO_URL: z.string().min(1),
   TRACKED_REF: z.string().default("main"),
+
+  /** Relativer Pfad unter REPO_DIR zur Vite-App (Ordner mit vite.config / index.html). */
+  VITE_PROJECT_SUBDIR: z.string().default("mermaid-poc"),
+
+  /** URL-Pfad-Prefix der Vite-App (muss zu VITE_PROJECT_SUBDIR passen, z. B. /mermaid-poc/). */
+  VITE_BASE_PATH: z
+    .string()
+    .default("/mermaid-poc/")
+    .transform(normalizeViteBasePath),
 
   PACKAGE_MANAGER: z.enum(["pnpm", "npm", "yarn"]).default("pnpm"),
 

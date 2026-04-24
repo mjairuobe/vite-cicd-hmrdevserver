@@ -11,7 +11,7 @@ describe("resolveViteProjectRoot", () => {
       const nested = join(root, "mermaid-poc");
       await mkdir(nested, { recursive: true });
       await writeFile(join(nested, "vite.config.ts"), "export default {}\n");
-      expect(resolveViteProjectRoot(root)).toBe(nested);
+      expect(resolveViteProjectRoot(root, "mermaid-poc")).toBe(nested);
     } finally {
       await rm(root, { recursive: true, force: true });
     }
@@ -21,7 +21,7 @@ describe("resolveViteProjectRoot", () => {
     const root = await mkdtemp(join(tmpdir(), "vdr-flat-"));
     try {
       await writeFile(join(root, "vite.config.ts"), "export default {}\n");
-      expect(resolveViteProjectRoot(root)).toBe(root);
+      expect(resolveViteProjectRoot(root, "mermaid-poc")).toBe(root);
     } finally {
       await rm(root, { recursive: true, force: true });
     }

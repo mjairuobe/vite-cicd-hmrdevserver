@@ -17,13 +17,16 @@ async function main(): Promise<void> {
   const config = loadConfig();
   const { logger, ring } = createLogger(config);
 
-  const viteRoot = resolveViteProjectRoot(config.REPO_DIR);
+  const viteRoot = resolveViteProjectRoot(config.REPO_DIR, config.VITE_PROJECT_SUBDIR);
   logger.info(
     {
       supervisor: `${config.SUPERVISOR_HOST}:${config.SUPERVISOR_PORT}`,
       vite: `${config.VITE_HOST}:${config.VITE_PORT}`,
       repoDir: config.REPO_DIR,
+      repoUrl: config.REPO_URL,
       viteRoot,
+      viteBasePath: config.VITE_BASE_PATH,
+      viteProjectSubdir: config.VITE_PROJECT_SUBDIR,
       trackedRef: config.TRACKED_REF,
       pm: config.PACKAGE_MANAGER,
     },
@@ -44,6 +47,7 @@ async function main(): Promise<void> {
   const state = new StateMachine("OFFLINE");
   const vite = new ViteController({
     viteRoot,
+    base: config.VITE_BASE_PATH,
     host: config.VITE_HOST,
     port: config.VITE_PORT,
     logger: logger.child({ component: "vite" }),

@@ -1,0 +1,12 @@
+{
+  "name": "vite-cicd-hmrdevserver",
+  "private": true,
+  "workspaces": ["mermaid-poc"],
+  "scripts": {
+    "dev": "npm run dev -w mermaid-poc",
+    "watch": "npm run watch -w mermaid-poc",
+    "build": "npm run build -w mermaid-poc",
+    "serve": "npm run serve -w mermaid-poc",
+    "typecheck": "npm run typecheck -w mermaid-poc"
+  }
+}

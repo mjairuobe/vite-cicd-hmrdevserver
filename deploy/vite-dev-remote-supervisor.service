@@ -1,6 +1,6 @@
 [Unit]
 Description=Vite Dev Remote Supervisor
-Documentation=https://github.com/your-org/vite-dev-remote
+Documentation=https://github.com/mjairuobe/vite-cicd-hmrdevserver
 After=network-online.target
 Wants=network-online.target
 
@@ -25,9 +25,11 @@ Environment=SUPERVISOR_HOST=127.0.0.1
 Environment=SUPERVISOR_PORT=40890
 Environment=VITE_HOST=127.0.0.1
 Environment=VITE_PORT=40889
-Environment=REPO_DIR=%h/vite-dev-remote-repo
-Environment=REPO_URL=https://github.com/mjairuobe/markup-class-diagram-ui-poc.git
+Environment=REPO_DIR=%h/vite-cicd-hmrdevserver
+Environment=REPO_URL=https://github.com/mjairuobe/vite-cicd-hmrdevserver.git
 Environment=TRACKED_REF=main
+Environment=VITE_PROJECT_SUBDIR=mermaid-poc
+Environment=VITE_BASE_PATH=/mermaid-poc/
 Environment=PACKAGE_MANAGER=pnpm
 Environment=KILL_PORT_OWNER_ON_START=true
 

@@ -1,4 +1,4 @@
-// Vite Dev Remote Pipeline.
+// Vite Dev Remote Pipeline — https://github.com/mjairuobe/vite-cicd-hmrdevserver
 // Triggers a sync on the long-running supervisor and streams its state until terminal.
 pipeline {
   agent any

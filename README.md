@@ -1,77 +1,65 @@
-# vite-dev-remote
+# vite-cicd-hmrdevserver
 
 Long-running Vite dev server on a remote host, fed by a Jenkins CI/CD pipeline. Pushes
 take seconds to surface in the browser via HMR, instead of minutes for a Docker rebuild.
 
+**Repository:** https://github.com/mjairuobe/vite-cicd-hmrdevserver
+
 ## Layout
 
 ```
+mermaid-poc/  Vite + React Mermaid PoC (HMR-Ziel)
 supervisor/   Node + TypeScript daemon that owns the Vite process and exposes an HTTP API
 deploy/       systemd unit + install / uninstall scripts
-Jenkinsfile   ~50-line pipeline that POSTs /sync and streams /events until terminal state
+Jenkinsfile   Pipeline that POSTs /sync and streams /events until terminal state
 ```
+
+## Supervisor-Umgebung (neben `REPO_URL`)
+
+| Variable | Bedeutung | Beispiel |
+|----------|-----------|----------|
+| `REPO_URL` | Git-Clone-URL | `https://github.com/mjairuobe/vite-cicd-hmrdevserver.git` |
+| `REPO_DIR` | Arbeitskopie auf dem Host | `$HOME/vite-cicd-hmrdevserver` |
+| `VITE_PROJECT_SUBDIR` | Unterordner mit `vite.config` / `index.html` | `mermaid-poc` |
+| `VITE_BASE_PATH` | Öffentlicher URL-Pfad der App (Vite `base`) | `/mermaid-poc/` |
+
+Die Datei `deploy/vite-dev-remote-supervisor.service` setzt diese Werte inklusive `REPO_URL`.
 
 ## Quick start (dev host)
 
 ```bash
-# 1. Install dependencies and build.
 cd supervisor && npm install && npm run build
 
-# 2. Configure: see deploy/vite-dev-remote-supervisor.service for env vars,
-#    or set them inline:
-export REPO_DIR=$HOME/work/repo
-export REPO_URL=https://github.com/org/your-frontend.git
+export REPO_DIR=$HOME/vite-cicd-hmrdevserver
+export REPO_URL=https://github.com/mjairuobe/vite-cicd-hmrdevserver.git
+export VITE_PROJECT_SUBDIR=mermaid-poc
+export VITE_BASE_PATH=/mermaid-poc/
 export TRACKED_REF=main
 
-# 3. Run.
 node dist/src/supervisor.js
-
-# Or install as a long-running user service:
-bash deploy/install.sh
+# oder: bash deploy/install.sh
 ```
 
-## Quick start (developer laptop)
+## Quick start (Entwickler-Laptop)
 
 ```bash
-# Forward the dev server's port from the dev host to your laptop.
 ssh -N -L 40889:127.0.0.1:40889 user@dev-host
-# Open http://127.0.0.1:40889 in your browser.
+# App: http://127.0.0.1:40889/mermaid-poc/
 ```
 
-Pin the forward to `127.0.0.1` (not `localhost`) — see plan for the IPv4/IPv6 gotcha.
-
-## Triggering a sync
+## Monorepo (Frontend)
 
 ```bash
-curl -X POST http://dev-host.internal:40890/sync \
-     -H 'Content-Type: application/json' \
-     -d '{"ref":"main"}'
-```
-
-Or wire your Jenkins job to the included `Jenkinsfile`.
-
-## Useful operator commands
-
-```bash
-# Status / logs (requires systemd install)
-systemctl --user status vite-dev-remote-supervisor
-journalctl --user -u vite-dev-remote-supervisor -f
-
-# Find any stray processes
-pgrep -af vite-dev-remote
-ss -tlnp 'sport = :40889'
-
-# Hard restart
-systemctl --user restart vite-dev-remote-supervisor
-
-# Read structured logs over HTTP (no journald access needed)
-curl -s http://dev-host.internal:40890/logs?limit=200 | jq
+git clone https://github.com/mjairuobe/vite-cicd-hmrdevserver.git
+cd vite-cicd-hmrdevserver
+npm install
+npm run dev
 ```
 
 ## Tests
 
 ```bash
 cd supervisor
-npm test          # unit + integration (vitest)
-npm run typecheck # tsc --noEmit
+npm test
+npm run typecheck
 ```

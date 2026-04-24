@@ -2,16 +2,16 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 
 /**
- * REPO_DIR ist oft ein Monorepo-Root; Vite-App + index.html liegen in einem Unterordner.
- * Wenn dort eine vite.config liegt, diese nutzen — sonst Repo-Root (flaches Projekt).
+ * REPO_DIR ist oft ein Monorepo-Root; Vite-App + index.html liegen in VITE_PROJECT_SUBDIR.
+ * Wenn dort keine vite.config liegt, flaches Repo-Root versuchen.
  */
-export function resolveViteProjectRoot(repoDir: string): string {
-  const commonNested = join(repoDir, "mermaid-poc");
-  if (existsSync(join(commonNested, "vite.config.ts")) || existsSync(join(commonNested, "vite.config.mts"))) {
-    return commonNested;
+export function resolveViteProjectRoot(repoDir: string, projectSubdir: string): string {
+  const nested = join(repoDir, projectSubdir);
+  if (existsSync(join(nested, "vite.config.ts")) || existsSync(join(nested, "vite.config.mts"))) {
+    return nested;
   }
   if (existsSync(join(repoDir, "vite.config.ts")) || existsSync(join(repoDir, "vite.config.mts"))) {
     return repoDir;
   }
-  return repoDir;
+  return nested;
 }

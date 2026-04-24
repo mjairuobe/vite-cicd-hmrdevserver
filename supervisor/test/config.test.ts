@@ -11,6 +11,8 @@ describe("config", () => {
     const c = loadConfig({ ...minimal });
     expect(c.SUPERVISOR_PORT).toBe(40890);
     expect(c.VITE_PORT).toBe(40889);
+    expect(c.VITE_BASE_PATH).toBe("/mermaid-poc/");
+    expect(c.VITE_PROJECT_SUBDIR).toBe("mermaid-poc");
     expect(c.PACKAGE_MANAGER).toBe("pnpm");
     expect(c.TRACKED_REF).toBe("main");
     expect(c.AUTH_SECRET).toBeUndefined();
@@ -34,5 +36,11 @@ describe("config", () => {
 
   it("rejects out-of-range ports", () => {
     expect(() => loadConfig({ ...minimal, VITE_PORT: "70000" })).toThrow();
+  });
+
+  it("normalisiert VITE_BASE_PATH", () => {
+    expect(loadConfig({ ...minimal, VITE_BASE_PATH: "app" }).VITE_BASE_PATH).toBe("/app/");
+    expect(loadConfig({ ...minimal, VITE_BASE_PATH: "/" }).VITE_BASE_PATH).toBe("/");
+    expect(loadConfig({ ...minimal, VITE_BASE_PATH: "/foo" }).VITE_BASE_PATH).toBe("/foo/");
   });
 });
