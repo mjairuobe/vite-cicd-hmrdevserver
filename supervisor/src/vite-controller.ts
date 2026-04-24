@@ -2,6 +2,7 @@ import { createServer, type ViteDevServer } from "vite";
 import type { Logger } from "pino";
 import { request as httpRequest } from "node:http";
 import { setTimeout as sleep } from "node:timers/promises";
+import { join } from "node:path";
 import { StateMachine, type StateError } from "./state-machine.js";
 
 export type ViteControllerOptions = {
@@ -57,6 +58,8 @@ export class ViteController {
       this.server = await createServer({
         root: this.opts.viteRoot,
         base: this.opts.base,
+        // Nicht nach ~/../node_modules auflösen (/home/ec2-user/node_modules ist oft root-owned).
+        cacheDir: join(this.opts.viteRoot, "node_modules", ".vite"),
         server: {
           host: this.opts.host,
           port: this.opts.port,

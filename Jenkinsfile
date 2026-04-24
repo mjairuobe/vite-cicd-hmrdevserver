@@ -20,7 +20,15 @@ pipeline {
         // Lockable Resources guards across jobs (e.g. multiple branches sharing one devserver).
         lock(resource: 'vite-dev-remote', inversePrecedence: true) {
           script {
-            def ref = env.BRANCH_NAME ?: 'main'
+            // BRANCH_NAME fehlt bei vielen nicht-Multibranch-Jobs → sonst fälschlich "main" und alter Stand ohne Monorepo.
+            def ref = env.BRANCH_NAME?.trim()
+            if (!ref) {
+              ref = sh(returnStdout: true, script: 'git -C "${WORKSPACE}" rev-parse --abbrev-ref HEAD').trim()
+            }
+            if (!ref || ref == 'HEAD') {
+              ref = 'master'
+            }
+            echo "Supervisor sync ref: ${ref}"
 
             // Optional auth header — set SUPERVISOR_SECRET as a Jenkins credential
             // and bind it to the env block, then it's auto-included in curl calls.
