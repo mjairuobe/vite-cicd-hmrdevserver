@@ -27,7 +27,7 @@ Environment=VITE_HOST=127.0.0.1
 Environment=VITE_PORT=40889
 Environment=REPO_DIR=%h/vite-cicd-hmrdevserver
 Environment=REPO_URL=https://github.com/mjairuobe/vite-cicd-hmrdevserver.git
-Environment=TRACKED_REF=main
+Environment=TRACKED_REF=master
 Environment=VITE_PROJECT_SUBDIR=mermaid-poc
 Environment=VITE_BASE_PATH=/mermaid-poc/
 Environment=PACKAGE_MANAGER=pnpm

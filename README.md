@@ -34,7 +34,7 @@ export REPO_DIR=$HOME/vite-cicd-hmrdevserver
 export REPO_URL=https://github.com/mjairuobe/vite-cicd-hmrdevserver.git
 export VITE_PROJECT_SUBDIR=mermaid-poc
 export VITE_BASE_PATH=/mermaid-poc/
-export TRACKED_REF=main
+export TRACKED_REF=master
 
 node dist/src/supervisor.js
 # oder: bash deploy/install.sh
